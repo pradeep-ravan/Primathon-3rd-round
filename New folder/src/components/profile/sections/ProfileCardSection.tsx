@@ -154,7 +154,7 @@ export function ProfileCardSection({
     {
       name: "birthday",
       label: "BIRTHDAY",
-      type: FieldType.TEXT,
+      type: FieldType.DATE,
       placeholder: "dd/mm/yyyy",
       className: "bg-muted border-border text-foreground",
     },
@@ -172,7 +172,7 @@ export function ProfileCardSection({
     {
       name: "anniversary",
       label: "ANNIVERSARY",
-      type: FieldType.TEXT,
+      type: FieldType.DATE,
       placeholder: "dd/mm/yyyy",
       className: "bg-muted border-border text-foreground",
     },

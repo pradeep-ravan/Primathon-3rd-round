@@ -409,39 +409,20 @@ export function CustomInlineForm<T = any>({
 
       case FieldType.DATE:
         const dateValue = getValues(field.name as any);
-        const formattedDate = dateValue
-          ? new Date(dateValue).toLocaleDateString('en-GB')
-          : '';
         return (
-          <div className="relative z-20 date-field-container">
-            <DatePicker
-              selected={dateValue ? new Date(dateValue) : null}
-              onChange={(date) => setValue(field.name as any, date)}
-              dateFormat="dd/MM/yyyy"
+          <div className="relative">
+            <Input
+              type="date"
+              value={dateValue || ''}
+              onChange={(e) => {
+                setValue(field.name as any, e.target.value, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                setTimeout(() => {
+                  onSubmit(getValues());
+                }, 300);
+              }}
+              placeholder={field.placeholder || 'dd/mm/yyyy'}
               disabled={field.disabled || isSubmitting}
-              wrapperClassName="w-full"
-              calendarClassName="!bg-card !border-border !text-foreground"
-              dayClassName={(date) =>
-                '!text-foreground hover:!bg-primary/20 !rounded-lg'
-              }
-              monthClassName={(date) => '!text-foreground'}
-              yearClassName={(date) => '!text-foreground'}
-              showPopperArrow={false}
-              popperClassName="!z-[9999] !fixed"
-              portalId="datepicker-portal"
-              withPortal
-              customInput={
-                <div className="relative w-full">
-                  <Input
-                    value={formattedDate}
-                    placeholder={field.placeholder || 'dd/mm/yyyy'}
-                    readOnly
-                    disabled={field.disabled || isSubmitting}
-                    className={`${baseClassName} ${errorClassName} bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-lg px-4 py-3 backdrop-blur-sm pr-10 cursor-pointer hover:border-primary/50`}
-                  />
-                  <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                </div>
-              }
+              className={`${baseClassName} ${errorClassName} bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-lg px-4 py-3 backdrop-blur-sm [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100`}
             />
           </div>
         );
