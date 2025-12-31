@@ -101,6 +101,16 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     deleteAccountWhenExpired: false,
 
     // Card section
+    firstName: '',
+    lastName: '',
+    birthday: '',
+    gender: 'Unknown',
+    anniversary: '',
+    company: '',
+    department: '',
+    job: '',
+    manager: '',
+    assistant: '',
     phone: '',
     website: '',
     street: '',
@@ -203,6 +213,16 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         deleteAccountWhenExpired: accountDetails.limits?.delete_expire || false,
         
         // Card section
+        firstName: accountDetails.card?.first_name || accountDetails.name || '',
+        lastName: accountDetails.card?.last_name || accountDetails.surname || '',
+        birthday: accountDetails.card?.birthday || '',
+        gender: accountDetails.card?.gender === 1 ? 'Male' : accountDetails.card?.gender === 2 ? 'Female' : 'Unknown',
+        anniversary: accountDetails.card?.anniversary || '',
+        company: accountDetails.card?.company_name || '',
+        department: accountDetails.card?.department || '',
+        job: accountDetails.card?.job_title || '',
+        manager: accountDetails.card?.manager_name || '',
+        assistant: accountDetails.card?.assistant_name || '',
         phone: accountDetails.card?.mobile_telephone_number || accountDetails.card?.business_telephone_number || '',
         website: accountDetails.card?.webpage || accountDetails.card?.homepage || '',
         street: accountDetails.card?.business_address_street || accountDetails.card?.home_address_street || '',
@@ -345,6 +365,40 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       // Card section - only include changed fields
       if (useChangeDetection) {
         const cardChanges: any = {};
+        if (hasChanged(profileData.firstName, baseline.firstName)) {
+          cardChanges.first_name = profileData.firstName;
+        }
+        if (hasChanged(profileData.lastName, baseline.lastName)) {
+          cardChanges.last_name = profileData.lastName;
+        }
+        if (hasChanged(profileData.birthday, baseline.birthday)) {
+          cardChanges.birthday = profileData.birthday;
+        }
+        if (hasChanged(profileData.gender, baseline.gender)) {
+          // Map gender to API format: 0=Unknown, 1=Male, 2=Female
+          let genderValue = 0;
+          if (profileData.gender === 'Male') genderValue = 1;
+          else if (profileData.gender === 'Female') genderValue = 2;
+          cardChanges.gender = genderValue;
+        }
+        if (hasChanged(profileData.anniversary, baseline.anniversary)) {
+          cardChanges.anniversary = profileData.anniversary;
+        }
+        if (hasChanged(profileData.company, baseline.company)) {
+          cardChanges.company_name = profileData.company;
+        }
+        if (hasChanged(profileData.department, baseline.department)) {
+          cardChanges.department = profileData.department;
+        }
+        if (hasChanged(profileData.job, baseline.job)) {
+          cardChanges.job_title = profileData.job;
+        }
+        if (hasChanged(profileData.manager, baseline.manager)) {
+          cardChanges.manager_name = profileData.manager;
+        }
+        if (hasChanged(profileData.assistant, baseline.assistant)) {
+          cardChanges.assistant_name = profileData.assistant;
+        }
         if (hasChanged(profileData.phone, baseline.phone)) {
           cardChanges.mobile_telephone_number = profileData.phone;
         }
@@ -640,6 +694,16 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         return (
           <ProfileCardSection
             profileData={{
+              firstName: profileData.firstName,
+              lastName: profileData.lastName,
+              birthday: profileData.birthday,
+              gender: profileData.gender,
+              anniversary: profileData.anniversary,
+              company: profileData.company,
+              department: profileData.department,
+              job: profileData.job,
+              manager: profileData.manager,
+              assistant: profileData.assistant,
               phone: profileData.phone,
               website: profileData.website,
               street: profileData.street,

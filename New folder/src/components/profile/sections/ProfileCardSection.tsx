@@ -16,6 +16,16 @@ import {
 
 export interface ProfileCardSectionProps {
   profileData: {
+    firstName: string;
+    lastName: string;
+    birthday: string;
+    gender: string;
+    anniversary: string;
+    company: string;
+    department: string;
+    job: string;
+    manager: string;
+    assistant: string;
     phone: string;
     website: string;
     street: string;
@@ -32,6 +42,84 @@ export function ProfileCardSection({
   profileData,
   onInputChange,
 }: ProfileCardSectionProps) {
+  // General Fields
+  const generalFields: FormField[] = [
+    {
+      name: "firstName",
+      label: "FIRST NAME",
+      type: FieldType.TEXT,
+      placeholder: "Enter first name",
+      className: "bg-muted border-border text-foreground",
+    },
+    {
+      name: "lastName",
+      label: "LAST NAME",
+      type: FieldType.TEXT,
+      placeholder: "Enter last name",
+      className: "bg-muted border-border text-foreground",
+    },
+    {
+      name: "birthday",
+      label: "BIRTHDAY",
+      type: FieldType.TEXT,
+      placeholder: "dd/mm/yyyy",
+      className: "bg-muted border-border text-foreground",
+    },
+    {
+      name: "gender",
+      label: "GENDER",
+      type: FieldType.SELECT,
+      options: [
+        { value: "Unknown", label: "Unknown" },
+        { value: "Male", label: "Male" },
+        { value: "Female", label: "Female" },
+      ],
+      className: "bg-muted border-border text-foreground",
+    },
+    {
+      name: "anniversary",
+      label: "ANNIVERSARY",
+      type: FieldType.TEXT,
+      placeholder: "dd/mm/yyyy",
+      className: "bg-muted border-border text-foreground",
+    },
+    {
+      name: "company",
+      label: "COMPANY",
+      type: FieldType.TEXT,
+      placeholder: "Company",
+      className: "bg-muted border-border text-foreground",
+    },
+    {
+      name: "department",
+      label: "DEPARTMENT",
+      type: FieldType.TEXT,
+      placeholder: "Department",
+      className: "bg-muted border-border text-foreground",
+    },
+    {
+      name: "job",
+      label: "JOB",
+      type: FieldType.TEXT,
+      placeholder: "Job",
+      className: "bg-muted border-border text-foreground",
+    },
+    {
+      name: "manager",
+      label: "MANAGER",
+      type: FieldType.TEXT,
+      placeholder: "Manager",
+      className: "bg-muted border-border text-foreground",
+    },
+    {
+      name: "assistant",
+      label: "ASSISTANT",
+      type: FieldType.TEXT,
+      placeholder: "Assistant",
+      className: "bg-muted border-border text-foreground",
+    },
+  ];
+
   // Contact Information Fields
   const contactFields: FormField[] = [
     {
@@ -102,6 +190,12 @@ export function ProfileCardSection({
     },
   ];
 
+  const handleGeneralSubmit = (data: any) => {
+    Object.keys(data).forEach((key) => {
+      onInputChange(key, data[key]);
+    });
+  };
+
   const handleContactSubmit = (data: any) => {
     Object.keys(data).forEach((key) => {
       onInputChange(key, data[key]);
@@ -122,6 +216,29 @@ export function ProfileCardSection({
 
   return (
     <div className="space-y-6">
+      {/* General Section */}
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="text-foreground text-xl font-bold">
+            GENERAL
+          </CardTitle>
+          <CardDescription className="text-foreground">
+            Enter the account's information. All data presented here will be
+            shown also in the user's GAL contact. Users can edit the fields in
+            My Details dialog in WebClient. All fields are optional.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CustomInlineForm
+            config={{
+              fields: generalFields,
+              onSubmit: handleGeneralSubmit,
+              defaultValues: profileData,
+            }}
+          />
+        </CardContent>
+      </Card>
+
       {/* Contact Information */}
       <Card className="bg-card border-border">
         <CardHeader>
