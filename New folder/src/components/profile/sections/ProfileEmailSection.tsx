@@ -116,8 +116,8 @@ export function ProfileEmailSection({
       type: FieldType.SELECT,
       options: [
         { value: "default", label: "Default" },
-        { value: "enabled", label: "Enabled" },
-        { value: "disabled", label: "Disabled" },
+        { value: "disabled", label: "Do not use spam folder" },
+        { value: "enabled", label: "Use spam folder" },
       ],
       className: "bg-muted border-border text-foreground",
     },
@@ -325,8 +325,7 @@ export function ProfileEmailSection({
             ANTI-SPAM
           </CardTitle>
           <CardDescription className="text-foreground">
-            Options for receiving spam reports (new items, all items) and
-            whether a spam folder should be used.
+          Select whether this user will receive spam reports, will receive reports as set in Anti-Spam - Action - Reports, reports with new spam items listed or reports with all spam items listed. Also select whether a spam folder is to be used.
           </CardDescription>
         </CardHeader>
         <CardContent>
