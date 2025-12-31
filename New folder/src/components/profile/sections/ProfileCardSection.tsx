@@ -50,11 +50,18 @@ export interface ProfileCardSectionProps {
     phones: PhoneEntry[];
     emails: EmailEntry[];
     website: string;
-    street: string;
-    city: string;
-    zip: string;
-    state: string;
-    country: string;
+    // Work address
+    workStreet: string;
+    workCity: string;
+    workZip: string;
+    workState: string;
+    workCountry: string;
+    // Home address
+    homeStreet: string;
+    homeCity: string;
+    homeZip: string;
+    homeState: string;
+    homeCountry: string;
     notes: string;
   };
   onInputChange: (field: string, value: any) => void;
@@ -217,57 +224,11 @@ export function ProfileCardSection({
     },
   ];
 
-  // Address Fields
-  const addressFields: FormField[] = [
-    {
-      name: "street",
-      label: "STREET ADDRESS",
-      type: FieldType.TEXT,
-      placeholder: "123 Main Street",
-      className: "bg-muted border-border text-foreground",
-      gridCols: 2,
-    },
-    {
-      name: "city",
-      label: "CITY",
-      type: FieldType.TEXT,
-      placeholder: "City",
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "zip",
-      label: "ZIP CODE",
-      type: FieldType.TEXT,
-      placeholder: "12345",
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "state",
-      label: "STATE",
-      type: FieldType.TEXT,
-      placeholder: "State",
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "country",
-      label: "COUNTRY",
-      type: FieldType.TEXT,
-      placeholder: "Country",
-      className: "bg-muted border-border text-foreground",
-    },
-  ];
+  // Address Fields - Remove old addressFields
+  // We'll create inline fields for work and home addresses
 
-  // Notes Fields
-  const notesFields: FormField[] = [
-    {
-      name: "notes",
-      label: "NOTES",
-      type: FieldType.TEXTAREA,
-      placeholder: "Enter any additional notes...",
-      className: "bg-muted border-border text-foreground min-h-[120px]",
-      gridCols: 2,
-    },
-  ];
+  // Notes Fields - Remove notesFields since we now use textarea
+  // We'll handle notes separately
 
   const handleGeneralSubmit = (data: any) => {
     Object.keys(data).forEach((key) => {
@@ -276,18 +237,6 @@ export function ProfileCardSection({
   };
 
   const handleWebsiteSubmit = (data: any) => {
-    Object.keys(data).forEach((key) => {
-      onInputChange(key, data[key]);
-    });
-  };
-
-  const handleAddressSubmit = (data: any) => {
-    Object.keys(data).forEach((key) => {
-      onInputChange(key, data[key]);
-    });
-  };
-
-  const handleNotesSubmit = (data: any) => {
     Object.keys(data).forEach((key) => {
       onInputChange(key, data[key]);
     });
@@ -494,24 +443,132 @@ export function ProfileCardSection({
         </Card>
       </div>
 
-      {/* Address Information */}
+      {/* Address Information - Work and Home side by side */}
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-foreground text-xl font-bold">
             ADDRESS
           </CardTitle>
           <CardDescription className="text-foreground">
-            Enter your physical address information.
+            Enter a street address or place of work.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <CustomInlineForm
-            config={{
-              fields: addressFields,
-              onSubmit: handleAddressSubmit,
-              defaultValues: profileData,
-            }}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Work Address */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground">Work address</h3>
+              
+              <div className="space-y-2">
+                <Label className="text-sm text-muted-foreground">STREET</Label>
+                <Input
+                  value={profileData.workStreet}
+                  onChange={(e) => onInputChange('workStreet', e.target.value)}
+                  placeholder="Street"
+                  className="bg-muted border-border text-foreground"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">CITY</Label>
+                  <Input
+                    value={profileData.workCity}
+                    onChange={(e) => onInputChange('workCity', e.target.value)}
+                    placeholder="City"
+                    className="bg-muted border-border text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">ZIP</Label>
+                  <Input
+                    value={profileData.workZip}
+                    onChange={(e) => onInputChange('workZip', e.target.value)}
+                    placeholder="ZIP"
+                    className="bg-muted border-border text-foreground"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">STATE / COUNTY</Label>
+                  <Input
+                    value={profileData.workState}
+                    onChange={(e) => onInputChange('workState', e.target.value)}
+                    placeholder="State / County"
+                    className="bg-muted border-border text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">COUNTRY</Label>
+                  <Input
+                    value={profileData.workCountry}
+                    onChange={(e) => onInputChange('workCountry', e.target.value)}
+                    placeholder="Country"
+                    className="bg-muted border-border text-foreground"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Home Address */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground">Home address</h3>
+              
+              <div className="space-y-2">
+                <Label className="text-sm text-muted-foreground">STREET</Label>
+                <Input
+                  value={profileData.homeStreet}
+                  onChange={(e) => onInputChange('homeStreet', e.target.value)}
+                  placeholder="Street"
+                  className="bg-muted border-border text-foreground"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">CITY</Label>
+                  <Input
+                    value={profileData.homeCity}
+                    onChange={(e) => onInputChange('homeCity', e.target.value)}
+                    placeholder="City"
+                    className="bg-muted border-border text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">ZIP</Label>
+                  <Input
+                    value={profileData.homeZip}
+                    onChange={(e) => onInputChange('homeZip', e.target.value)}
+                    placeholder="ZIP"
+                    className="bg-muted border-border text-foreground"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">STATE / COUNTY</Label>
+                  <Input
+                    value={profileData.homeState}
+                    onChange={(e) => onInputChange('homeState', e.target.value)}
+                    placeholder="State / County"
+                    className="bg-muted border-border text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">COUNTRY</Label>
+                  <Input
+                    value={profileData.homeCountry}
+                    onChange={(e) => onInputChange('homeCountry', e.target.value)}
+                    placeholder="Country"
+                    className="bg-muted border-border text-foreground"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

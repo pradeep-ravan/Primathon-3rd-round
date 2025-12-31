@@ -114,11 +114,18 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     phones: [] as { number: string; type: string }[],
     emails: [] as { address: string; type: string }[],
     website: '',
-    street: '',
-    city: '',
-    zip: '',
-    state: '',
-    country: '',
+    // Work address
+    workStreet: '',
+    workCity: '',
+    workZip: '',
+    workState: '',
+    workCountry: '',
+    // Home address
+    homeStreet: '',
+    homeCity: '',
+    homeZip: '',
+    homeState: '',
+    homeCountry: '',
     notes: '',
 
     // Rules section
@@ -224,13 +231,21 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         job: accountDetails.card?.job_title || '',
         manager: accountDetails.card?.manager_name || '',
         assistant: accountDetails.card?.assistant_name || '',
-        phone: accountDetails.card?.mobile_telephone_number || accountDetails.card?.business_telephone_number || '',
+        phones: [], // TODO: Map phone numbers from API
+        emails: [], // TODO: Map emails from API
         website: accountDetails.card?.webpage || accountDetails.card?.homepage || '',
-        street: accountDetails.card?.business_address_street || accountDetails.card?.home_address_street || '',
-        city: accountDetails.card?.business_address_city || accountDetails.card?.home_address_city || '',
-        zip: accountDetails.card?.business_address_postal_code || accountDetails.card?.home_address_postal_code || '',
-        state: accountDetails.card?.business_address_state || accountDetails.card?.home_address_state || '',
-        country: accountDetails.card?.business_address_country || accountDetails.card?.home_address_country || '',
+        // Work address
+        workStreet: accountDetails.card?.business_address_street || '',
+        workCity: accountDetails.card?.business_address_city || '',
+        workZip: accountDetails.card?.business_address_postal_code || '',
+        workState: accountDetails.card?.business_address_state || '',
+        workCountry: accountDetails.card?.business_address_country || '',
+        // Home address
+        homeStreet: accountDetails.card?.home_address_street || '',
+        homeCity: accountDetails.card?.home_address_city || '',
+        homeZip: accountDetails.card?.home_address_postal_code || '',
+        homeState: accountDetails.card?.home_address_state || '',
+        homeCountry: accountDetails.card?.home_address_country || '',
         notes: accountDetails.comment || '',
         
         // Rules section (defaults)
@@ -400,27 +415,41 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         if (hasChanged(profileData.assistant, baseline.assistant)) {
           cardChanges.assistant_name = profileData.assistant;
         }
-        if (hasChanged(profileData.phone, baseline.phone)) {
-          cardChanges.mobile_telephone_number = profileData.phone;
-        }
         if (hasChanged(profileData.website, baseline.website)) {
           cardChanges.webpage = profileData.website;
           cardChanges.homepage = profileData.website;
         }
-        if (hasChanged(profileData.street, baseline.street)) {
-          cardChanges.business_address_street = profileData.street;
+        // Work address
+        if (hasChanged(profileData.workStreet, baseline.workStreet)) {
+          cardChanges.business_address_street = profileData.workStreet;
         }
-        if (hasChanged(profileData.city, baseline.city)) {
-          cardChanges.business_address_city = profileData.city;
+        if (hasChanged(profileData.workCity, baseline.workCity)) {
+          cardChanges.business_address_city = profileData.workCity;
         }
-        if (hasChanged(profileData.zip, baseline.zip)) {
-          cardChanges.business_address_postal_code = profileData.zip;
+        if (hasChanged(profileData.workZip, baseline.workZip)) {
+          cardChanges.business_address_postal_code = profileData.workZip;
         }
-        if (hasChanged(profileData.state, baseline.state)) {
-          cardChanges.business_address_state = profileData.state;
+        if (hasChanged(profileData.workState, baseline.workState)) {
+          cardChanges.business_address_state = profileData.workState;
         }
-        if (hasChanged(profileData.country, baseline.country)) {
-          cardChanges.business_address_country = profileData.country;
+        if (hasChanged(profileData.workCountry, baseline.workCountry)) {
+          cardChanges.business_address_country = profileData.workCountry;
+        }
+        // Home address
+        if (hasChanged(profileData.homeStreet, baseline.homeStreet)) {
+          cardChanges.home_address_street = profileData.homeStreet;
+        }
+        if (hasChanged(profileData.homeCity, baseline.homeCity)) {
+          cardChanges.home_address_city = profileData.homeCity;
+        }
+        if (hasChanged(profileData.homeZip, baseline.homeZip)) {
+          cardChanges.home_address_postal_code = profileData.homeZip;
+        }
+        if (hasChanged(profileData.homeState, baseline.homeState)) {
+          cardChanges.home_address_state = profileData.homeState;
+        }
+        if (hasChanged(profileData.homeCountry, baseline.homeCountry)) {
+          cardChanges.home_address_country = profileData.homeCountry;
         }
         if (hasChanged(profileData.notes, baseline.notes)) {
           // Notes are stored in comment field
@@ -705,13 +734,19 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               job: profileData.job,
               manager: profileData.manager,
               assistant: profileData.assistant,
-              phone: profileData.phone,
+              phones: profileData.phones,
+              emails: profileData.emails,
               website: profileData.website,
-              street: profileData.street,
-              city: profileData.city,
-              zip: profileData.zip,
-              state: profileData.state,
-              country: profileData.country,
+              workStreet: profileData.workStreet,
+              workCity: profileData.workCity,
+              workZip: profileData.workZip,
+              workState: profileData.workState,
+              workCountry: profileData.workCountry,
+              homeStreet: profileData.homeStreet,
+              homeCity: profileData.homeCity,
+              homeZip: profileData.homeZip,
+              homeState: profileData.homeState,
+              homeCountry: profileData.homeCountry,
               notes: profileData.notes,
             }}
             onInputChange={handleInputChange}
