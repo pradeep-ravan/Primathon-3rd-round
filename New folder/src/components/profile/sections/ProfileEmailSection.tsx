@@ -28,6 +28,7 @@ export interface ProfileEmailSectionProps {
     autoRespondEnabled: boolean;
     respondStartDate: string;
     respondEndDate: string;
+    respondAfterDaysEnabled?: boolean;
     respondAfterDays: string;
     spamReportsMode: string;
     spamFolderMode: string;
@@ -67,36 +68,34 @@ export function ProfileEmailSection({
   // Check if Forward To field has value to enable/disable the toggle
   const isForwardToEmpty = !profileData.forwardTo || profileData.forwardTo.trim() === '';
 
-  // Responder Fields
-  const responderFields: FormField[] = [
-    {
-      name: "autoRespondEnabled",
-      label: "AUTOMATICALLY RESPOND TO EMAILS RECEIVED BETWEEN",
-      type: FieldType.SWITCH,
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "respondStartDate",
-      label: "START DATE",
-      type: FieldType.DATE,
-      placeholder: "dd-mm-yyyy",
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "respondEndDate",
-      label: "END DATE",
-      type: FieldType.DATE,
-      placeholder: "dd-mm-yyyy",
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "respondAfterDays",
-      label: "RESPOND TO THE SAME SENDER AGAIN AFTER (DAYS)",
-      type: FieldType.NUMBER,
-      placeholder: "Days",
-      className: "bg-muted border-border text-foreground",
-    },
-  ];
+  // Handle auto respond toggle
+  const handleAutoRespondToggle = (checked: boolean) => {
+    onInputChange('autoRespondEnabled', checked);
+    // If disabling, also disable the respond after days feature
+    if (!checked) {
+      onInputChange('respondAfterDaysEnabled', false);
+    }
+  };
+
+  // Handle respond start date change
+  const handleRespondStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onInputChange('respondStartDate', e.target.value);
+  };
+
+  // Handle respond end date change
+  const handleRespondEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onInputChange('respondEndDate', e.target.value);
+  };
+
+  // Handle respond after days toggle (new field)
+  const handleRespondAfterDaysToggle = (checked: boolean) => {
+    onInputChange('respondAfterDaysEnabled', checked);
+  };
+
+  // Handle respond after days input
+  const handleRespondAfterDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onInputChange('respondAfterDays', e.target.value);
+  };
 
   // Anti-Spam Fields
   const antiSpamFields: FormField[] = [
@@ -125,11 +124,6 @@ export function ProfileEmailSection({
   ];
 
 
-  const handleResponderSubmit = (data: any) => {
-    Object.keys(data).forEach((key) => {
-      onInputChange(key, data[key]);
-    });
-  };
 
   const handleAntiSpamSubmit = (data: any) => {
     Object.keys(data).forEach((key) => {
@@ -228,18 +222,93 @@ export function ProfileEmailSection({
             RESPONDER
           </CardTitle>
           <CardDescription className="text-foreground">
-            Other fields are enabled depending on the responder mode.
+            Select the responder mode for this account. Other fields are enabled depending on this mode.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <CustomInlineForm
-            config={{
-              fields: responderFields,
-              onSubmit: handleResponderSubmit,
-              defaultValues: profileData,
-            }}
-          />
-          <Button className="bg-blue-600 hover:bg-blue-700 text-foreground">
+        <CardContent className="space-y-6">
+          {/* Automatically Respond Toggle */}
+          <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
+            <Label 
+              htmlFor="autoRespondEnabled" 
+              className="text-sm font-medium text-foreground"
+            >
+              AUTOMATICALLY RESPOND TO EMAILS RECEIVED BETWEEN
+            </Label>
+            <Switch
+              id="autoRespondEnabled"
+              checked={profileData.autoRespondEnabled}
+              onCheckedChange={handleAutoRespondToggle}
+              className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/30 dark:data-[state=unchecked]:bg-muted-foreground/50"
+            />
+          </div>
+
+          {/* Start Date and End Date - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className={`text-sm font-medium ${!profileData.autoRespondEnabled ? 'text-muted-foreground' : 'text-foreground'}`}>
+                START DATE
+              </Label>
+              <Input
+                type="date"
+                value={profileData.respondStartDate || ''}
+                onChange={handleRespondStartDateChange}
+                placeholder="dd/mm/yyyy"
+                disabled={!profileData.autoRespondEnabled}
+                className="bg-muted border-border text-foreground [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className={`text-sm font-medium ${!profileData.autoRespondEnabled ? 'text-muted-foreground' : 'text-foreground'}`}>
+                END DATE
+              </Label>
+              <Input
+                type="date"
+                value={profileData.respondEndDate || ''}
+                onChange={handleRespondEndDateChange}
+                placeholder="dd/mm/yyyy"
+                disabled={!profileData.autoRespondEnabled}
+                className="bg-muted border-border text-foreground [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+            </div>
+          </div>
+
+          {/* Respond to Same Sender Again After (Days) Toggle */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
+              <Label 
+                htmlFor="respondAfterDaysEnabled" 
+                className={`text-sm font-medium ${!profileData.autoRespondEnabled ? 'text-muted-foreground' : 'text-foreground'}`}
+              >
+                RESPOND TO THE SAME SENDER AGAIN AFTER (DAYS)
+              </Label>
+              <Switch
+                id="respondAfterDaysEnabled"
+                checked={profileData.respondAfterDaysEnabled || false}
+                onCheckedChange={handleRespondAfterDaysToggle}
+                disabled={!profileData.autoRespondEnabled}
+                className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/30 dark:data-[state=unchecked]:bg-muted-foreground/50"
+              />
+            </div>
+
+            {/* Days Input */}
+            <div className="space-y-2">
+              <Input
+                type="number"
+                value={profileData.respondAfterDays || ''}
+                onChange={handleRespondAfterDaysChange}
+                placeholder="Days"
+                disabled={!profileData.autoRespondEnabled || !profileData.respondAfterDaysEnabled}
+                className="bg-muted border-border text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+            </div>
+          </div>
+
+          {/* Message Button */}
+          <Button 
+            disabled={!profileData.autoRespondEnabled}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             MESSAGE
           </Button>
         </CardContent>
