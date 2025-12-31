@@ -221,18 +221,28 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         spamFolderMode: accountDetails.email_settings?.spam_folder?.toLowerCase() || 'default',
         
         // Limits section
-        accountDiskQuota: accountDetails.quota?.mailbox_quota ? accountDetails.quota.mailbox_quota > 0 : false,
-        diskQuotaValue: accountDetails.quota?.mailbox_quota?.toString() || '0',
+        accountDiskQuota: accountDetails.limits?.max_box ? accountDetails.limits.max_box > 0 : false,
+        diskQuotaValue: accountDetails.limits?.max_box?.toString() || '0',
         diskQuotaUnit: 'kB',
-        dailySendOutLimits: accountDetails.limits?.number_send_limit ? accountDetails.limits.number_send_limit > 0 : false,
+        dailySendOutLimits: (accountDetails.limits?.number_send_limit && accountDetails.limits.number_send_limit > 0) || 
+                           (accountDetails.limits?.megabyte_send_limit && accountDetails.limits.megabyte_send_limit > 0) ? true : false,
+        sendOutDataLimit: accountDetails.limits?.megabyte_send_limit?.toString() || '0',
+        sendOutDataUnit: 'MB',
+        sendOutMessagesLimit: accountDetails.limits?.number_send_limit?.toString() || '0',
+        maxMessageSize: accountDetails.limits?.max_message_size?.toString() || '0',
+        maxMessageSizeUnit: 'kB',
         deleteMailOlderThan: accountDetails.limits?.delete_older || false,
+        deleteMailOlderThanDays: accountDetails.limits?.delete_older_days?.toString() || '0',
         deleteSpamOlderThan: accountDetails.limits?.spam_delete_older || false,
+        deleteSpamOlderThanDays: '0', // Not in API response
         userCanSendToLocalDomainsOnly: accountDetails.limits?.local_domain || false,
         disableAccessToPop3: false, // Not in API response
         expirationStatus: accountDetails.limits?.account_valid ? 'enabled' : 'disabled',
         expiresIfInactiveFor: accountDetails.limits?.inactive_for?.toString() || '0',
-        expiresOn: accountDetails.limits?.account_valid_till_date ? true : false,
+        expiresOn: accountDetails.limits?.account_valid || false,
+        expiresOnDate: accountDetails.limits?.account_valid_till_date ? accountDetails.limits.account_valid_till_date.replace(/\//g, '-') : '',
         notifyBeforeExpiration: accountDetails.limits?.validity_report || false,
+        notifyBeforeExpirationDays: accountDetails.limits?.validity_report_days?.toString() || '0',
         deleteAccountWhenExpired: accountDetails.limits?.delete_expire || false,
         
         // Card section
@@ -622,53 +632,99 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
       // Limits section - only include changed fields
       if (useChangeDetection) {
-        const quotaChanges: any = {};
         const limitsChanges: any = {};
-        let hasQuotaChanges = false;
         let hasLimitsChanges = false;
         
+        // Account Disk Quota
         if (hasChanged(profileData.accountDiskQuota, baseline.accountDiskQuota) ||
             hasChanged(profileData.diskQuotaValue, baseline.diskQuotaValue)) {
           if (profileData.accountDiskQuota && profileData.diskQuotaValue) {
-            quotaChanges.mailbox_quota = parseInt(profileData.diskQuotaValue) || 0;
+            limitsChanges.max_box = parseInt(profileData.diskQuotaValue) || 0;
           } else {
-            quotaChanges.mailbox_quota = 0;
+            limitsChanges.max_box = 0;
           }
-          hasQuotaChanges = true;
-        }
-        
-        if (hasChanged(profileData.deleteMailOlderThan, baseline.deleteMailOlderThan)) {
-          limitsChanges.delete_older = profileData.deleteMailOlderThan;
           hasLimitsChanges = true;
         }
+        
+        // Daily Send Out Limits
+        if (hasChanged(profileData.dailySendOutLimits, baseline.dailySendOutLimits) ||
+            hasChanged(profileData.sendOutDataLimit, baseline.sendOutDataLimit) ||
+            hasChanged(profileData.sendOutMessagesLimit, baseline.sendOutMessagesLimit)) {
+          if (profileData.dailySendOutLimits) {
+            limitsChanges.megabyte_send_limit = parseInt(profileData.sendOutDataLimit) || 0;
+            limitsChanges.number_send_limit = parseInt(profileData.sendOutMessagesLimit) || 0;
+          } else {
+            limitsChanges.megabyte_send_limit = 0;
+            limitsChanges.number_send_limit = 0;
+          }
+          hasLimitsChanges = true;
+        }
+        
+        // Max Message Size
+        if (hasChanged(profileData.maxMessageSize, baseline.maxMessageSize)) {
+          limitsChanges.max_message_size = parseInt(profileData.maxMessageSize) || 0;
+          hasLimitsChanges = true;
+        }
+        
+        // Delete Mail Older Than
+        if (hasChanged(profileData.deleteMailOlderThan, baseline.deleteMailOlderThan) ||
+            hasChanged(profileData.deleteMailOlderThanDays, baseline.deleteMailOlderThanDays)) {
+          limitsChanges.delete_older = profileData.deleteMailOlderThan;
+          if (profileData.deleteMailOlderThan) {
+            limitsChanges.delete_older_days = parseInt(profileData.deleteMailOlderThanDays) || 0;
+          }
+          hasLimitsChanges = true;
+        }
+        
+        // Delete Spam Older Than
         if (hasChanged(profileData.deleteSpamOlderThan, baseline.deleteSpamOlderThan)) {
           limitsChanges.spam_delete_older = profileData.deleteSpamOlderThan;
           hasLimitsChanges = true;
         }
+        
+        // User Can Send To Local Domains Only
         if (hasChanged(profileData.userCanSendToLocalDomainsOnly, baseline.userCanSendToLocalDomainsOnly)) {
           limitsChanges.local_domain = profileData.userCanSendToLocalDomainsOnly;
           hasLimitsChanges = true;
         }
+        
+        // Expiration Status
         if (hasChanged(profileData.expirationStatus, baseline.expirationStatus)) {
           limitsChanges.account_valid = profileData.expirationStatus === 'enabled';
           hasLimitsChanges = true;
         }
+        
+        // Expires If Inactive For
         if (hasChanged(profileData.expiresIfInactiveFor, baseline.expiresIfInactiveFor)) {
           limitsChanges.inactive_for = parseInt(profileData.expiresIfInactiveFor) || 0;
           hasLimitsChanges = true;
         }
-        if (hasChanged(profileData.notifyBeforeExpiration, baseline.notifyBeforeExpiration)) {
-          limitsChanges.validity_report = profileData.notifyBeforeExpiration;
+        
+        // Expires On
+        if (hasChanged(profileData.expiresOn, baseline.expiresOn) ||
+            hasChanged(profileData.expiresOnDate, baseline.expiresOnDate)) {
+          if (profileData.expiresOn && profileData.expiresOnDate) {
+            limitsChanges.account_valid_till_date = profileData.expiresOnDate.replace(/-/g, '/');
+          }
           hasLimitsChanges = true;
         }
+        
+        // Notify Before Expiration
+        if (hasChanged(profileData.notifyBeforeExpiration, baseline.notifyBeforeExpiration) ||
+            hasChanged(profileData.notifyBeforeExpirationDays, baseline.notifyBeforeExpirationDays)) {
+          limitsChanges.validity_report = profileData.notifyBeforeExpiration;
+          if (profileData.notifyBeforeExpiration) {
+            limitsChanges.validity_report_days = parseInt(profileData.notifyBeforeExpirationDays || '0') || 0;
+          }
+          hasLimitsChanges = true;
+        }
+        
+        // Delete Account When Expired
         if (hasChanged(profileData.deleteAccountWhenExpired, baseline.deleteAccountWhenExpired)) {
           limitsChanges.delete_expire = profileData.deleteAccountWhenExpired;
           hasLimitsChanges = true;
         }
         
-        if (hasQuotaChanges) {
-          updateData.quota = quotaChanges;
-        }
         if (hasLimitsChanges) {
           updateData.limits = limitsChanges;
         }
@@ -680,9 +736,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       }
       if (updateData.email_settings && Object.keys(updateData.email_settings).length === 0) {
         delete updateData.email_settings;
-      }
-      if (updateData.quota && Object.keys(updateData.quota).length === 0) {
-        delete updateData.quota;
       }
       if (updateData.limits && Object.keys(updateData.limits).length === 0) {
         delete updateData.limits;

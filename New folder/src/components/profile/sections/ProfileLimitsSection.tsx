@@ -421,7 +421,7 @@ export function ProfileLimitsSection({
                   value={profileData.expiresOnDate || ''}
                   onChange={handleExpiresOnDateChange}
                   placeholder="dd/mm/yyyy"
-                  className="bg-muted border-border text-foreground relative pr-10 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:opacity-100"
+                  className="bg-muted border-border text-foreground pr-10 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:opacity-100"
                 />
               </div>
             )}
