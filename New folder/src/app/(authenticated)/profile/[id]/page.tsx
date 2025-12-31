@@ -438,6 +438,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         icon={<User className="h-6 w-6" />}
         tabs={tabs}
         defaultTab="info"
+        onClose={() => router.back()}
         onSave={handleSave}
         saveButtonText="Save Changes"
       >
