@@ -231,8 +231,35 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         job: accountDetails.card?.job_title || '',
         manager: accountDetails.card?.manager_name || '',
         assistant: accountDetails.card?.assistant_name || '',
-        phones: [], // TODO: Map phone numbers from API
-        emails: [], // TODO: Map emails from API
+        // Map phone numbers from API
+        phones: [
+          { number: accountDetails.card?.home_telephone_number || '', type: 'Home 1' },
+          { number: accountDetails.card?.home_2_telephone_number || '', type: 'Home 2' },
+          { number: accountDetails.card?.assistant_telephone_number || '', type: 'Assistant' },
+          { number: accountDetails.card?.business_telephone_number || '', type: 'Work 1' },
+          { number: accountDetails.card?.business_2_telephone_number || '', type: 'Work 2' },
+          { number: accountDetails.card?.home_fax_number || '', type: 'Fax home' },
+          { number: accountDetails.card?.business_fax_number || '', type: 'Fax work' },
+          { number: accountDetails.card?.callback_telephone_number || '', type: 'Callback' },
+          { number: accountDetails.card?.company_main_telephone_number || '', type: 'Company' },
+          { number: accountDetails.card?.car_telephone_number || '', type: 'Car' },
+          { number: accountDetails.card?.isdn_number || '', type: 'ISDN' },
+          { number: accountDetails.card?.mobile_telephone_number || '', type: 'Mobile' },
+          { number: accountDetails.card?.other_fax_number || '', type: 'Other fax' },
+          { number: accountDetails.card?.pager_number || '', type: 'Pager' },
+          { number: accountDetails.card?.primary_telephone_number || '', type: 'Primary' },
+          { number: accountDetails.card?.radio_telephone_number || '', type: 'Radio' },
+          { number: accountDetails.card?.telex_number || '', type: 'Telex' },
+          { number: accountDetails.card?.hearing_number || '', type: 'Hearing' },
+          { number: accountDetails.card?.other_number || '', type: 'SIP' },
+        ].filter(phone => phone.number !== ''), // Only keep phones with values
+        // Map emails from API
+        emails: [
+          { address: accountDetails.card?.email_1_address || '', type: 'Email 1' },
+          { address: accountDetails.card?.email_2_address || '', type: 'Email 2' },
+          { address: accountDetails.card?.email_3_address || '', type: 'Email 3' },
+          { address: accountDetails.card?.im_address || '', type: 'IM address' },
+        ].filter(email => email.address !== ''), // Only keep emails with values
         website: accountDetails.card?.webpage || accountDetails.card?.homepage || '',
         // Work address
         workStreet: accountDetails.card?.business_address_street || '',
@@ -414,6 +441,51 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         }
         if (hasChanged(profileData.assistant, baseline.assistant)) {
           cardChanges.assistant_name = profileData.assistant;
+        }
+        // Phones - map array back to individual fields
+        if (hasChanged(profileData.phones, baseline.phones)) {
+          const phoneMap: Record<string, string> = {
+            'Home 1': 'home_telephone_number',
+            'Home 2': 'home_2_telephone_number',
+            'Assistant': 'assistant_telephone_number',
+            'Work 1': 'business_telephone_number',
+            'Work 2': 'business_2_telephone_number',
+            'Fax home': 'home_fax_number',
+            'Fax work': 'business_fax_number',
+            'Callback': 'callback_telephone_number',
+            'Company': 'company_main_telephone_number',
+            'Car': 'car_telephone_number',
+            'ISDN': 'isdn_number',
+            'Mobile': 'mobile_telephone_number',
+            'Other fax': 'other_fax_number',
+            'Pager': 'pager_number',
+            'Primary': 'primary_telephone_number',
+            'Radio': 'radio_telephone_number',
+            'Telex': 'telex_number',
+            'Hearing': 'hearing_number',
+            'SIP': 'other_number',
+          };
+          profileData.phones.forEach(phone => {
+            const apiField = phoneMap[phone.type];
+            if (apiField) {
+              cardChanges[apiField] = phone.number;
+            }
+          });
+        }
+        // Emails - map array back to individual fields
+        if (hasChanged(profileData.emails, baseline.emails)) {
+          const emailMap: Record<string, string> = {
+            'Email 1': 'email_1_address',
+            'Email 2': 'email_2_address',
+            'Email 3': 'email_3_address',
+            'IM address': 'im_address',
+          };
+          profileData.emails.forEach(email => {
+            const apiField = emailMap[email.type];
+            if (apiField) {
+              cardChanges[apiField] = email.address;
+            }
+          });
         }
         if (hasChanged(profileData.website, baseline.website)) {
           cardChanges.webpage = profileData.website;

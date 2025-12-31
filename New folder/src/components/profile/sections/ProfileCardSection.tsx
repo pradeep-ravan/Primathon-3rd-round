@@ -78,6 +78,19 @@ export function ProfileCardSection({
     profileData.emails?.length > 0 ? profileData.emails : [{ address: '', type: 'Email 1' }]
   );
 
+  // Update local state when profileData changes
+  React.useEffect(() => {
+    if (profileData.phones?.length > 0) {
+      setPhones(profileData.phones);
+    }
+  }, [profileData.phones]);
+
+  React.useEffect(() => {
+    if (profileData.emails?.length > 0) {
+      setEmails(profileData.emails);
+    }
+  }, [profileData.emails]);
+
   // Phone handlers
   const handleAddPhone = () => {
     const newPhones = [...phones, { number: '', type: `Home ${phones.length + 1}` }];
