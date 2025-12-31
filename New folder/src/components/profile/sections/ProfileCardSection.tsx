@@ -193,6 +193,19 @@ export function ProfileCardSection({
     },
   ];
 
+  // Website field (allow 2 websites)
+  const [websites, setWebsites] = useState<string[]>(
+    profileData.website ? [profileData.website, ''] : ['', '']
+  );
+
+  const handleWebsiteChange = (index: number, value: string) => {
+    const newWebsites = [...websites];
+    newWebsites[index] = value;
+    setWebsites(newWebsites);
+    // Store only the first non-empty website for now
+    onInputChange('website', newWebsites[0] || newWebsites[1] || '');
+  };
+
   // Website field (single field, we can keep it simple)
   const websiteFields: FormField[] = [
     {
@@ -433,26 +446,53 @@ export function ProfileCardSection({
         </Card>
       </div>
 
-      {/* Website Section */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground text-xl font-bold">
-            WEBSITE
-          </CardTitle>
-          <CardDescription className="text-foreground">
-            Enter the user's website URL.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CustomInlineForm
-            config={{
-              fields: websiteFields,
-              onSubmit: handleWebsiteSubmit,
-              defaultValues: profileData,
-            }}
-          />
-        </CardContent>
-      </Card>
+      {/* Website and Notes Section - Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Website Section */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground text-xl font-bold">
+              WEBSITE
+            </CardTitle>
+            <CardDescription className="text-foreground">
+              Enter the user's website address.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {websites.map((website, index) => (
+              <Input
+                key={index}
+                type="url"
+                value={website}
+                onChange={(e) => handleWebsiteChange(index, e.target.value)}
+                placeholder="Website"
+                className="bg-muted border-border text-foreground"
+              />
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Notes Section */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground text-xl font-bold">
+              NOTE
+            </CardTitle>
+            <CardDescription className="text-foreground">
+              Note to a contact (this field is usually edited by a user).
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <textarea
+              value={profileData.notes}
+              onChange={(e) => onInputChange('notes', e.target.value)}
+              placeholder="Note"
+              className="w-full min-h-[120px] max-h-[400px] resize-y bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+              style={{ resize: 'vertical' }}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Address Information */}
       <Card className="bg-card border-border">
@@ -469,25 +509,6 @@ export function ProfileCardSection({
             config={{
               fields: addressFields,
               onSubmit: handleAddressSubmit,
-              defaultValues: profileData,
-            }}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Notes Section */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground text-xl font-bold">NOTES</CardTitle>
-          <CardDescription className="text-foreground">
-            Add any additional notes or comments about this profile.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CustomInlineForm
-            config={{
-              fields: notesFields,
-              onSubmit: handleNotesSubmit,
               defaultValues: profileData,
             }}
           />
