@@ -223,9 +223,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         // Card section
         firstName: accountDetails.card?.first_name || accountDetails.name || '',
         lastName: accountDetails.card?.last_name || accountDetails.surname || '',
-        birthday: accountDetails.card?.birthday || '',
+        birthday: accountDetails.card?.birthday ? accountDetails.card.birthday.split('T')[0] : '',
         gender: accountDetails.card?.gender === 1 ? 'Male' : accountDetails.card?.gender === 2 ? 'Female' : 'Unknown',
-        anniversary: accountDetails.card?.anniversary || '',
+        anniversary: accountDetails.card?.anniversary ? accountDetails.card.anniversary.split('T')[0] : '',
         company: accountDetails.card?.company_name || '',
         department: accountDetails.card?.department || '',
         job: accountDetails.card?.job_title || '',
@@ -415,7 +415,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           cardChanges.last_name = profileData.lastName;
         }
         if (hasChanged(profileData.birthday, baseline.birthday)) {
-          cardChanges.birthday = profileData.birthday;
+          // Convert YYYY-MM-DD to ISO datetime format
+          cardChanges.birthday = profileData.birthday ? `${profileData.birthday}T00:00:00.000` : '';
         }
         if (hasChanged(profileData.gender, baseline.gender)) {
           // Map gender to API format: 0=Unknown, 1=Male, 2=Female
@@ -425,7 +426,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           cardChanges.gender = genderValue;
         }
         if (hasChanged(profileData.anniversary, baseline.anniversary)) {
-          cardChanges.anniversary = profileData.anniversary;
+          // Convert YYYY-MM-DD to ISO datetime format
+          cardChanges.anniversary = profileData.anniversary ? `${profileData.anniversary}T00:00:00.000` : '';
         }
         if (hasChanged(profileData.company, baseline.company)) {
           cardChanges.company_name = profileData.company;
