@@ -14,7 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Clock, Mail, Settings, Shield, Smartphone, User } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, use } from 'react';
-import { useAccountDetails } from '@/hooks/useUsers';
+import { useAccountDetails, useUpdateAccount } from '@/hooks/useUsers';
 import { useDomains } from '@/hooks/useDomains';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
@@ -52,8 +52,14 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   // Fetch account details
   const { data: accountDetails, isLoading: isLoadingDetails, error } = useAccountDetails(domainId, accountId);
   
+  // Update account mutation
+  const updateAccountMutation = useUpdateAccount();
+  
   // Track if data has been loaded and mapped
   const [isDataMapped, setIsDataMapped] = useState(false);
+  
+  // Store original data to compare changes
+  const [originalProfileData, setOriginalProfileData] = useState<any>(null);
 
   const [profileData, setProfileData] = useState({
     // Info section
@@ -155,8 +161,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         }
       }
 
-      setProfileData((prev) => ({
-        ...prev,
+      const newProfileData = {
         // Info section
         firstName: accountDetails.name || accountDetails.card?.first_name || '',
         lastName: accountDetails.surname || accountDetails.card?.last_name || '',
@@ -206,12 +211,31 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         state: accountDetails.card?.business_address_state || accountDetails.card?.home_address_state || '',
         country: accountDetails.card?.business_address_country || accountDetails.card?.home_address_country || '',
         notes: accountDetails.comment || '',
+        
+        // Rules section (defaults)
+        autoReplyEnabled: false,
+        vacationMessage: '',
+        forwardToManager: false,
+        blockExternalEmails: false,
+        requireApproval: false,
+        customRules: [] as string[],
+      };
+
+      setProfileData((prev) => ({
+        ...prev,
+        ...newProfileData,
       }));
+      
+      // Store original data for comparison (only if not already set)
+      if (!originalProfileData) {
+        setOriginalProfileData({ ...newProfileData });
+      }
       
       // Mark data as mapped
       setIsDataMapped(true);
     } else {
       // Reset mapping state when accountDetails is cleared
+      // But don't clear originalProfileData as it's needed for comparison
       setIsDataMapped(false);
     }
   }, [accountDetails]);
@@ -229,10 +253,288 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     }));
   };
 
-  const handleSave = () => {
-    console.log('Saving profile data:', profileData);
-    // TODO: Implement API call to update account details
-    toast.success('Profile saved successfully');
+  // Helper function to check if two values are different
+  const hasChanged = (current: any, original: any): boolean => {
+    if (Array.isArray(current) && Array.isArray(original)) {
+      return JSON.stringify(current) !== JSON.stringify(original);
+    }
+    return current !== original;
+  };
+
+  const handleSave = async () => {
+    if (!domainId || !accountId) {
+      toast.error('Domain ID and Account ID are required');
+      return;
+    }
+
+    // If originalProfileData is not set, we can't detect changes properly
+    // In this case, we'll send all non-empty fields (fallback behavior)
+    const useChangeDetection = !!originalProfileData;
+    const baseline = originalProfileData || {};
+    
+    if (!profileData) {
+      toast.error('Profile data not loaded. Please wait and try again.');
+      return;
+    }
+
+    try {
+      // Map profile data to API format - only include changed fields
+      const updateData: any = {};
+
+      // Info section - only include if changed
+      if (useChangeDetection) {
+        if (hasChanged(profileData.firstName, baseline.firstName) ||
+            hasChanged(profileData.lastName, baseline.lastName)) {
+          updateData.name = profileData.firstName || '';
+          updateData.surname = profileData.lastName || '';
+        }
+      }
+      
+      // Description/Comment - only send if changed and not empty
+      // API only accepts 'comment', not 'description'
+      if (useChangeDetection && hasChanged(profileData.description, baseline.description)) {
+        // Only send if it's not empty (or if it was changed from non-empty to empty)
+        if (profileData.description !== undefined && profileData.description !== '') {
+          updateData.comment = profileData.description;
+        } else if (baseline.description && baseline.description !== '') {
+          // User cleared the description, send empty string
+          updateData.comment = '';
+        }
+      } else if (!useChangeDetection && profileData.description && profileData.description !== '') {
+        // Fallback: if change detection not available, send if not empty
+        updateData.comment = profileData.description;
+      }
+      
+      // Aliases - only include if changed
+      if (useChangeDetection && hasChanged(profileData.aliases, baseline.aliases)) {
+        updateData.alias_list = profileData.aliases;
+      }
+      
+      // Account state - only include if changed
+      if (useChangeDetection && hasChanged(profileData.accountState, baseline.accountState)) {
+        // Map account state to API format
+        let accountState = 'NONE';
+        if (profileData.accountState === 'Enabled') {
+          accountState = 'NONE';
+        } else if (profileData.accountState === 'Disabled (login)') {
+          accountState = 'DISABLED';
+        } else if (profileData.accountState === 'Disable (login, receive)') {
+          accountState = 'DISABLED_RECEIVE';
+        } else if (profileData.accountState === 'Spam trap') {
+          accountState = 'SPAM_TRAP';
+        }
+        updateData.account_state = accountState;
+      }
+      
+      // Account type - only include if changed
+      if (useChangeDetection && hasChanged(profileData.accountType, baseline.accountType)) {
+        // Map account type to admin_type
+        let adminType = 'USER';
+        if (profileData.accountType === 'System Administrator') {
+          adminType = 'SYSTEM_ADMIN';
+        } else if (profileData.accountType === 'Domain Administrator') {
+          adminType = 'DOMAIN_ADMIN';
+        } else if (profileData.accountType === 'Web Administrator') {
+          adminType = 'WEB_ADMIN';
+        } else {
+          adminType = 'USER';
+        }
+        updateData.admin_type = adminType;
+      }
+
+      // Card section - only include changed fields
+      if (useChangeDetection) {
+        const cardChanges: any = {};
+        if (hasChanged(profileData.phone, baseline.phone)) {
+          cardChanges.mobile_telephone_number = profileData.phone;
+        }
+        if (hasChanged(profileData.website, baseline.website)) {
+          cardChanges.webpage = profileData.website;
+          cardChanges.homepage = profileData.website;
+        }
+        if (hasChanged(profileData.street, baseline.street)) {
+          cardChanges.business_address_street = profileData.street;
+        }
+        if (hasChanged(profileData.city, baseline.city)) {
+          cardChanges.business_address_city = profileData.city;
+        }
+        if (hasChanged(profileData.zip, baseline.zip)) {
+          cardChanges.business_address_postal_code = profileData.zip;
+        }
+        if (hasChanged(profileData.state, baseline.state)) {
+          cardChanges.business_address_state = profileData.state;
+        }
+        if (hasChanged(profileData.country, baseline.country)) {
+          cardChanges.business_address_country = profileData.country;
+        }
+        if (hasChanged(profileData.notes, baseline.notes)) {
+          // Notes are stored in comment field
+          if (!updateData.comment) {
+            updateData.comment = profileData.notes;
+          }
+        }
+        if (Object.keys(cardChanges).length > 0) {
+          updateData.card = cardChanges;
+        }
+      }
+
+      // Email section - only include changed fields
+      if (useChangeDetection) {
+        const emailSettingsChanges: any = {};
+        let hasEmailChanges = false;
+        
+        if (hasChanged(profileData.forwardTo, baseline.forwardTo)) {
+          emailSettingsChanges.forward_to = profileData.forwardTo;
+          hasEmailChanges = true;
+        }
+        if (hasChanged(profileData.alternateEmail, baseline.alternateEmail)) {
+          emailSettingsChanges.alternate_email = profileData.alternateEmail;
+          hasEmailChanges = true;
+        }
+        if (hasChanged(profileData.doNotForwardSpam, baseline.doNotForwardSpam)) {
+          emailSettingsChanges.do_not_forward_spam = profileData.doNotForwardSpam;
+          hasEmailChanges = true;
+        }
+        if (hasChanged(profileData.copyIncomingMail, baseline.copyIncomingMail)) {
+          emailSettingsChanges.mail_in = profileData.copyIncomingMail;
+          hasEmailChanges = true;
+        }
+        if (hasChanged(profileData.copyOutgoingMail, baseline.copyOutgoingMail)) {
+          emailSettingsChanges.mail_out = profileData.copyOutgoingMail;
+          hasEmailChanges = true;
+        }
+        
+        // Check if responder settings changed
+        const responderChanged = 
+          hasChanged(profileData.autoRespondEnabled, baseline.autoRespondEnabled) ||
+          hasChanged(profileData.respondStartDate, baseline.respondStartDate) ||
+          hasChanged(profileData.respondEndDate, baseline.respondEndDate) ||
+          hasChanged(profileData.respondAfterDays, baseline.respondAfterDays);
+        
+        if (responderChanged) {
+          emailSettingsChanges.responder = {
+            responder_type: profileData.autoRespondEnabled ? 'ENABLED' : 'DISABLED',
+            respond_period: profileData.respondAfterDays ? parseInt(profileData.respondAfterDays) || 0 : 0,
+            respond_between_from: profileData.respondStartDate || '',
+            respond_between_to: profileData.respondEndDate || '',
+            respond_only_if_to_me: false,
+          };
+          hasEmailChanges = true;
+        }
+        
+        if (hasChanged(profileData.spamReportsMode, baseline.spamReportsMode) && 
+            profileData.spamReportsMode !== 'default') {
+          emailSettingsChanges.spam_reports_mode = profileData.spamReportsMode.toUpperCase();
+          hasEmailChanges = true;
+        }
+        if (hasChanged(profileData.spamFolderMode, baseline.spamFolderMode) && 
+            profileData.spamFolderMode !== 'default') {
+          emailSettingsChanges.spam_folder = profileData.spamFolderMode.toUpperCase();
+          hasEmailChanges = true;
+        }
+        
+        if (hasEmailChanges) {
+          updateData.email_settings = emailSettingsChanges;
+        }
+      }
+
+      // Limits section - only include changed fields
+      if (useChangeDetection) {
+        const quotaChanges: any = {};
+        const limitsChanges: any = {};
+        let hasQuotaChanges = false;
+        let hasLimitsChanges = false;
+        
+        if (hasChanged(profileData.accountDiskQuota, baseline.accountDiskQuota) ||
+            hasChanged(profileData.diskQuotaValue, baseline.diskQuotaValue)) {
+          if (profileData.accountDiskQuota && profileData.diskQuotaValue) {
+            quotaChanges.mailbox_quota = parseInt(profileData.diskQuotaValue) || 0;
+          } else {
+            quotaChanges.mailbox_quota = 0;
+          }
+          hasQuotaChanges = true;
+        }
+        
+        if (hasChanged(profileData.deleteMailOlderThan, baseline.deleteMailOlderThan)) {
+          limitsChanges.delete_older = profileData.deleteMailOlderThan;
+          hasLimitsChanges = true;
+        }
+        if (hasChanged(profileData.deleteSpamOlderThan, baseline.deleteSpamOlderThan)) {
+          limitsChanges.spam_delete_older = profileData.deleteSpamOlderThan;
+          hasLimitsChanges = true;
+        }
+        if (hasChanged(profileData.userCanSendToLocalDomainsOnly, baseline.userCanSendToLocalDomainsOnly)) {
+          limitsChanges.local_domain = profileData.userCanSendToLocalDomainsOnly;
+          hasLimitsChanges = true;
+        }
+        if (hasChanged(profileData.expirationStatus, baseline.expirationStatus)) {
+          limitsChanges.account_valid = profileData.expirationStatus === 'enabled';
+          hasLimitsChanges = true;
+        }
+        if (hasChanged(profileData.expiresIfInactiveFor, baseline.expiresIfInactiveFor)) {
+          limitsChanges.inactive_for = parseInt(profileData.expiresIfInactiveFor) || 0;
+          hasLimitsChanges = true;
+        }
+        if (hasChanged(profileData.notifyBeforeExpiration, baseline.notifyBeforeExpiration)) {
+          limitsChanges.validity_report = profileData.notifyBeforeExpiration;
+          hasLimitsChanges = true;
+        }
+        if (hasChanged(profileData.deleteAccountWhenExpired, baseline.deleteAccountWhenExpired)) {
+          limitsChanges.delete_expire = profileData.deleteAccountWhenExpired;
+          hasLimitsChanges = true;
+        }
+        
+        if (hasQuotaChanges) {
+          updateData.quota = quotaChanges;
+        }
+        if (hasLimitsChanges) {
+          updateData.limits = limitsChanges;
+        }
+      }
+
+      // Clean up empty nested objects
+      if (updateData.card && Object.keys(updateData.card).length === 0) {
+        delete updateData.card;
+      }
+      if (updateData.email_settings && Object.keys(updateData.email_settings).length === 0) {
+        delete updateData.email_settings;
+      }
+      if (updateData.quota && Object.keys(updateData.quota).length === 0) {
+        delete updateData.quota;
+      }
+      if (updateData.limits && Object.keys(updateData.limits).length === 0) {
+        delete updateData.limits;
+      }
+
+    
+      // Only send update if there's data to update
+      if (Object.keys(updateData).length === 0) {
+        toast('No changes to save', {
+          duration: 3000,
+          icon: 'ℹ️',
+        });
+        return;
+      }
+      
+      const result = await updateAccountMutation.mutateAsync({
+        domainId,
+        accountId,
+        data: updateData,
+      });
+      // Update original data to reflect the saved state
+      setOriginalProfileData({ ...profileData });
+      
+      toast.success('Profile saved successfully', {
+        duration: 4000,
+      });
+    } catch (error: any) {
+      console.error('Failed to save profile:', error);
+      const errorMessage =
+        error?.message || 'Failed to save profile. Please try again.';
+      toast.error(errorMessage, {
+        duration: 4000,
+      });
+    }
   };
 
   const handleManageDevice = (deviceId: string) => {
@@ -441,6 +743,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         onClose={() => router.back()}
         onSave={handleSave}
         saveButtonText="Save Changes"
+        saveButtonDisabled={updateAccountMutation.isPending}
       >
         {renderTabContent}
       </MultiTabLayout>

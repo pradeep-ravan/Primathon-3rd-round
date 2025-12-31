@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete } from './apiRequest';
+import { apiGet, apiPost, apiPut, apiPatch, apiDelete } from './apiRequest';
 import { API_ENDPOINTS } from '@/config/apiEndpoints';
 import {
   User,
@@ -346,6 +346,36 @@ export const userApi = {
     
     const response = await apiGet<AccountDetailsResponse>(
       API_ENDPOINTS.USERS.GET_ACCOUNT_DETAILS(encodedDomainId, encodedAccountId)
+    );
+    
+    return response.data;
+  },
+
+  // Partially update account settings by domain ID and account ID
+  patchAccount: async (
+    domainId: string,
+    accountId: string,
+    data: Partial<{
+      name?: string;
+      surname?: string;
+      description?: string;
+      comment?: string;
+      alias_list?: string[];
+      account_state?: string;
+      admin_type?: string;
+      card?: Partial<AccountDetailsResponse['card']>;
+      email_settings?: Partial<AccountDetailsResponse['email_settings']>;
+      quota?: Partial<AccountDetailsResponse['quota']>;
+      limits?: Partial<AccountDetailsResponse['limits']>;
+    }>
+  ): Promise<AccountDetailsResponse> => {
+    // Encode both IDs for API
+    const encodedDomainId = encodeIdForApi(domainId);
+    const encodedAccountId = encodeIdForApi(accountId);
+    
+    const response = await apiPatch<AccountDetailsResponse>(
+      API_ENDPOINTS.USERS.UPDATE_ACCOUNT(encodedDomainId, encodedAccountId),
+      data
     );
     
     return response.data;

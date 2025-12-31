@@ -58,6 +58,7 @@ export const API_ENDPOINTS = {
     CREATE:(id: string) => `/admin/domain/${id}/accounts`,
     GET_BY_DOMAIN_ID: (id: string) => `/admin/domain/${id}/accounts`,
     GET_ACCOUNT_DETAILS: (domainId: string, accountId: string) => `/admin/domain/${domainId}/accounts/${accountId}`,
+    UPDATE_ACCOUNT: (domainId: string, accountId: string) => `/admin/domain/${domainId}/accounts/${accountId}`,
     DELETE: (domainId: string, accountId: string) => `/admin/domain/${domainId}/accounts/${accountId}`,
   },
 

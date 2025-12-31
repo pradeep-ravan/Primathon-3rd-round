@@ -190,6 +190,21 @@ export function CustomInlineForm<T = any>({
 
   const watchedValues = watch();
 
+  // Auto-save on field change
+  React.useEffect(() => {
+    const subscription = watch((value, { name, type }) => {
+      // Only trigger onSubmit for actual field changes (not initial mount)
+      if (type === 'change' && name) {
+        // Debounce to avoid excessive updates
+        const timer = setTimeout(() => {
+          onSubmit(getValues());
+        }, 300);
+        return () => clearTimeout(timer);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, onSubmit, getValues]);
+
   // Handle form submission
   const handleFormSubmit = async (data: any) => {
     try {

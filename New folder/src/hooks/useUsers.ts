@@ -53,6 +53,46 @@ export function useAccountDetails(domainId: string | undefined, accountId: strin
   });
 }
 
+// Hook to update account details (partial update)
+export function useUpdateAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      domainId,
+      accountId,
+      data,
+    }: {
+      domainId: string;
+      accountId: string;
+      data: Partial<{
+        name?: string;
+        surname?: string;
+        description?: string;
+        comment?: string;
+        alias_list?: string[];
+        account_state?: string;
+        admin_type?: string;
+        card?: Partial<AccountDetailsResponse['card']>;
+        email_settings?: Partial<AccountDetailsResponse['email_settings']>;
+        quota?: Partial<AccountDetailsResponse['quota']>;
+        limits?: Partial<AccountDetailsResponse['limits']>;
+      }>;
+    }) => userApi.patchAccount(domainId, accountId, data),
+    onSuccess: (updatedAccount, variables) => {
+      // Invalidate account details to refetch with updated data
+      queryClient.invalidateQueries({ 
+        queryKey: ['accountDetails', variables.domainId, variables.accountId] 
+      });
+      // Also invalidate users list to ensure consistency
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+    },
+    onError: (error) => {
+      console.error('Failed to update account:', error);
+    },
+  });
+}
+
 // Hook to fetch user statistics
 export function useUserStatistics() {
   return useQuery({
