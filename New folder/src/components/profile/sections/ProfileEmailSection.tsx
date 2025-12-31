@@ -248,28 +248,32 @@ export function ProfileEmailSection({
               <Label className={`text-sm font-medium ${!profileData.autoRespondEnabled ? 'text-muted-foreground' : 'text-foreground'}`}>
                 START DATE
               </Label>
-              <Input
-                type="date"
-                value={profileData.respondStartDate || ''}
-                onChange={handleRespondStartDateChange}
-                placeholder="dd/mm/yyyy"
-                disabled={!profileData.autoRespondEnabled}
-                className="bg-muted border-border text-foreground [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              />
+              <div className="relative">
+                <Input
+                  type="date"
+                  value={profileData.respondStartDate || ''}
+                  onChange={handleRespondStartDateChange}
+                  placeholder="dd/mm/yyyy"
+                  disabled={!profileData.autoRespondEnabled}
+                  className="bg-muted border-border text-foreground relative pr-10 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
               <Label className={`text-sm font-medium ${!profileData.autoRespondEnabled ? 'text-muted-foreground' : 'text-foreground'}`}>
                 END DATE
               </Label>
-              <Input
-                type="date"
-                value={profileData.respondEndDate || ''}
-                onChange={handleRespondEndDateChange}
-                placeholder="dd/mm/yyyy"
-                disabled={!profileData.autoRespondEnabled}
-                className="bg-muted border-border text-foreground [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              />
+              <div className="relative">
+                <Input
+                  type="date"
+                  value={profileData.respondEndDate || ''}
+                  onChange={handleRespondEndDateChange}
+                  placeholder="dd/mm/yyyy"
+                  disabled={!profileData.autoRespondEnabled}
+                  className="bg-muted border-border text-foreground relative pr-10 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
             </div>
           </div>
 
