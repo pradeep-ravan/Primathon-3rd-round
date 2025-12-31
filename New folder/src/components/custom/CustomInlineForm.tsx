@@ -296,7 +296,13 @@ export function CustomInlineForm<T = any>({
       case FieldType.SELECT:
         return (
           <Select
-            onValueChange={(value) => setValue(field.name as any, value)}
+            onValueChange={(value) => {
+              setValue(field.name as any, value, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+              // Manually trigger onSubmit after a short delay
+              setTimeout(() => {
+                onSubmit(getValues());
+              }, 300);
+            }}
             defaultValue={getValues(field.name as any) || field.defaultValue}
             disabled={field.disabled || isSubmitting}
           >
@@ -329,9 +335,13 @@ export function CustomInlineForm<T = any>({
             <Checkbox
               id={field.name}
               checked={getValues(field.name as any) || false}
-              onCheckedChange={(checked) =>
-                setValue(field.name as any, checked as any)
-              }
+              onCheckedChange={(checked) => {
+                setValue(field.name as any, checked as any, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                // Manually trigger onSubmit after a short delay
+                setTimeout(() => {
+                  onSubmit(getValues());
+                }, 300);
+              }}
               disabled={field.disabled || isSubmitting}
             />
             <Label htmlFor={field.name} className="text-sm font-medium">
@@ -352,9 +362,13 @@ export function CustomInlineForm<T = any>({
             <Switch
               id={field.name}
               checked={getValues(field.name as any) || false}
-              onCheckedChange={(checked) =>
-                setValue(field.name as any, checked as any)
-              }
+              onCheckedChange={(checked) => {
+                setValue(field.name as any, checked as any, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                // Manually trigger onSubmit after a short delay
+                setTimeout(() => {
+                  onSubmit(getValues());
+                }, 300);
+              }}
               disabled={field.disabled || isSubmitting}
               className="data-[state=checked]:bg-blue-500"
             />
@@ -365,7 +379,13 @@ export function CustomInlineForm<T = any>({
         return (
           <RadioGroup
             value={getValues(field.name as any) || field.defaultValue}
-            onValueChange={(value) => setValue(field.name as any, value as any)}
+            onValueChange={(value) => {
+              setValue(field.name as any, value as any, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+              // Manually trigger onSubmit after a short delay
+              setTimeout(() => {
+                onSubmit(getValues());
+              }, 300);
+            }}
             disabled={field.disabled || isSubmitting}
             className="flex flex-col space-y-2"
           >
