@@ -105,7 +105,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     expirationStatus: 'enabled',
     expiresIfInactiveFor: '0',
     expiresOn: false,
+    expiresOnDate: '',
     notifyBeforeExpiration: false,
+    notifyBeforeExpirationDays: '0',
     deleteAccountWhenExpired: false,
 
     // Card section

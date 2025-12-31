@@ -44,7 +44,9 @@ export interface ProfileLimitsSectionProps {
     expirationStatus: string;
     expiresIfInactiveFor: string;
     expiresOn: boolean;
+    expiresOnDate?: string;
     notifyBeforeExpiration: boolean;
+    notifyBeforeExpirationDays?: string;
     deleteAccountWhenExpired: boolean;
   };
   onInputChange: (field: string, value: string | boolean) => void;
@@ -115,49 +117,33 @@ export function ProfileLimitsSection({
     onInputChange('disableAccessToPop3', checked);
   };
 
-  // Expiration Fields
-  const expirationFields: FormField[] = [
-    {
-      name: "expirationStatus",
-      label: "STATUS",
-      type: FieldType.SELECT,
-      options: [
-        { value: "enabled", label: "Enabled" },
-        { value: "disabled", label: "Disabled" },
-      ],
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "expiresIfInactiveFor",
-      label: "EXPIRES IF INACTIVE FOR (DAYS)",
-      type: FieldType.NUMBER,
-      placeholder: "0",
-      className: "bg-muted border-border text-foreground w-20",
-    },
-    {
-      name: "expiresOn",
-      label: "EXPIRES ON",
-      type: FieldType.SWITCH,
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "notifyBeforeExpiration",
-      label: "NOTIFY BEFORE EXPIRATION",
-      type: FieldType.SWITCH,
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "deleteAccountWhenExpired",
-      label: "DELETE ACCOUNT WHEN EXPIRED",
-      type: FieldType.SWITCH,
-      className: "bg-muted border-border text-foreground",
-    },
-  ];
+  // Expiration handlers
+  const handleExpirationStatusChange = (value: string) => {
+    onInputChange('expirationStatus', value);
+  };
 
-  const handleExpirationSubmit = (data: any) => {
-    Object.keys(data).forEach((key) => {
-      onInputChange(key, data[key]);
-    });
+  const handleExpiresIfInactiveForChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onInputChange('expiresIfInactiveFor', e.target.value);
+  };
+
+  const handleExpiresOnToggle = (checked: boolean) => {
+    onInputChange('expiresOn', checked);
+  };
+
+  const handleExpiresOnDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onInputChange('expiresOnDate', e.target.value);
+  };
+
+  const handleNotifyBeforeExpirationToggle = (checked: boolean) => {
+    onInputChange('notifyBeforeExpiration', checked);
+  };
+
+  const handleNotifyBeforeExpirationDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onInputChange('notifyBeforeExpirationDays', e.target.value);
+  };
+
+  const handleDeleteAccountWhenExpiredToggle = (checked: boolean) => {
+    onInputChange('deleteAccountWhenExpired', checked);
   };
 
   return (
@@ -381,14 +367,106 @@ export function ProfileLimitsSection({
             Set expiration of the user's account.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <CustomInlineForm
-            config={{
-              fields: expirationFields,
-              onSubmit: handleExpirationSubmit,
-              defaultValues: profileData,
-            }}
-          />
+        <CardContent className="space-y-6">
+          {/* Status and Expires If Inactive For - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-foreground">STATUS</Label>
+              <Select value={profileData.expirationStatus} onValueChange={handleExpirationStatusChange}>
+                <SelectTrigger className="bg-muted border-border text-foreground">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="enabled">Enabled</SelectItem>
+                  <SelectItem value="disabled">Disabled (login)</SelectItem>
+                  <SelectItem value="disabled_receive">Disable (login, receive)</SelectItem>
+                  <SelectItem value="spam_trap">Spam trap</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-foreground">EXPIRES IF INACTIVE FOR</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="number"
+                  value={profileData.expiresIfInactiveFor}
+                  onChange={handleExpiresIfInactiveForChange}
+                  placeholder="Days"
+                  className="flex-1 bg-muted border-border text-foreground"
+                />
+                <span className="text-sm text-muted-foreground">days</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Expires On */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
+              <Label htmlFor="expiresOn" className="text-sm font-medium text-foreground">
+                EXPIRES ON
+              </Label>
+              <Switch
+                id="expiresOn"
+                checked={profileData.expiresOn}
+                onCheckedChange={handleExpiresOnToggle}
+                className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/30 dark:data-[state=unchecked]:bg-muted-foreground/50"
+              />
+            </div>
+            
+            {profileData.expiresOn && (
+              <div className="relative">
+                <Input
+                  type="date"
+                  value={profileData.expiresOnDate || ''}
+                  onChange={handleExpiresOnDateChange}
+                  placeholder="dd/mm/yyyy"
+                  className="bg-muted border-border text-foreground relative pr-10 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:opacity-100"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Notify Before Expiration */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
+              <Label htmlFor="notifyBeforeExpiration" className="text-sm font-medium text-foreground">
+                NOTIFY BEFORE EXPIRATION
+              </Label>
+              <Switch
+                id="notifyBeforeExpiration"
+                checked={profileData.notifyBeforeExpiration}
+                onCheckedChange={handleNotifyBeforeExpirationToggle}
+                className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/30 dark:data-[state=unchecked]:bg-muted-foreground/50"
+              />
+            </div>
+            
+            {profileData.notifyBeforeExpiration && (
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="number"
+                  value={profileData.notifyBeforeExpirationDays || ''}
+                  onChange={handleNotifyBeforeExpirationDaysChange}
+                  placeholder="Days"
+                  className="flex-1 bg-muted border-border text-foreground"
+                />
+                <span className="text-sm text-muted-foreground">days</span>
+              </div>
+            )}
+          </div>
+
+          {/* Delete Account When Expired */}
+          <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
+            <Label htmlFor="deleteAccountWhenExpired" className="text-sm font-medium text-foreground">
+              DELETE ACCOUNT WHEN EXPIRED
+            </Label>
+            <Switch
+              id="deleteAccountWhenExpired"
+              checked={profileData.deleteAccountWhenExpired}
+              onCheckedChange={handleDeleteAccountWhenExpiredToggle}
+              className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/30 dark:data-[state=unchecked]:bg-muted-foreground/50"
+            />
+          </div>
         </CardContent>
       </Card>
     </div>
