@@ -93,6 +93,24 @@ export function useUpdateAccount() {
   });
 }
 
+// Hook to reset user password
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: ({
+      domainId,
+      accountId,
+      newPassword,
+    }: {
+      domainId: string;
+      accountId: string;
+      newPassword?: string;
+    }) => userApi.resetPassword(domainId, accountId, newPassword),
+    onError: (error) => {
+      console.error('Failed to reset password:', error);
+    },
+  });
+}
+
 // Hook to fetch user statistics
 export function useUserStatistics() {
   return useQuery({
@@ -295,16 +313,6 @@ export function useToggleTwoFactor() {
     },
     onError: (error) => {
       console.error('Failed to toggle 2FA:', error);
-    },
-  });
-}
-
-// Hook to reset user password
-export function useResetPassword() {
-  return useMutation({
-    mutationFn: (id: string) => userApi.resetPassword(id),
-    onError: (error) => {
-      console.error('Failed to reset password:', error);
     },
   });
 }

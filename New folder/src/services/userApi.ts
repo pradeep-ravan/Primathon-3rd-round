@@ -381,6 +381,26 @@ export const userApi = {
     return response.data;
   },
 
+  // Reset user password by domain ID and account ID
+  resetPassword: async (
+    domainId: string,
+    accountId: string,
+    newPassword?: string
+  ): Promise<{ message: string }> => {
+    // Encode both IDs for API
+    const encodedDomainId = encodeIdForApi(domainId);
+    const encodedAccountId = encodeIdForApi(accountId);
+    
+    const requestData = newPassword ? { new_password: newPassword } : {};
+    
+    const response = await apiPost<{ message: string }>(
+      API_ENDPOINTS.USERS.RESET_PASSWORD(encodedDomainId, encodedAccountId),
+      requestData
+    );
+    
+    return response.data;
+  },
+
   // Get users by domain ID
   getUsersByDomainId: async (
     domainId: string,
@@ -1199,21 +1219,6 @@ export const userApi = {
         user.v_card?.job_title?.toLowerCase().includes(searchQuery) ||
         user.v_card?.department?.toLowerCase().includes(searchQuery)
     );
-  },
-
-  // Reset password
-  resetPassword: async (id: string): Promise<{ message: string }> => {
-    await delay(300);
-
-    const userIndex = MOCK_USERS.findIndex((u) => u.id === id);
-    if (userIndex === -1) {
-      throw new Error(`User with id ${id} not found`);
-    }
-
-    // In a real implementation, you would send a password reset email
-    return {
-      message: 'Password reset email sent successfully',
-    };
   },
 
   // Toggle 2FA

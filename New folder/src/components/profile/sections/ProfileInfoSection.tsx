@@ -18,6 +18,7 @@ import {
 import { X, Plus, Key } from "lucide-react";
 import { ChangePasswordModal } from "@/components/profile/ChangePasswordModal";
 import toast from "react-hot-toast";
+import { useResetPassword } from "@/hooks/useUsers";
 
 export interface ProfileInfoSectionProps {
   profileData: {
@@ -31,11 +32,15 @@ export interface ProfileInfoSectionProps {
     accountState: string;
   };
   onInputChange: (field: string, value: string | string[]) => void;
+  domainId?: string;
+  accountId?: string;
 }
 
 export function ProfileInfoSection({
   profileData,
   onInputChange,
+  domainId,
+  accountId,
 }: ProfileInfoSectionProps) {
   const [aliasInputs, setAliasInputs] = useState<string[]>(() => {
     // Initialize with existing aliases or one empty input
@@ -44,8 +49,10 @@ export function ProfileInfoSection({
       : [""];
   });
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const domain = profileData.domain || "";
+  
+  // Use the reset password mutation hook
+  const resetPasswordMutation = useResetPassword();
 
   // General Information Fields
   const generalFields: FormField[] = [
@@ -153,22 +160,31 @@ export function ProfileInfoSection({
   };
 
   const handleChangePassword = async (password: string, forceChange: boolean) => {
-    setIsChangingPassword(true);
+    
+    if (!domainId || !accountId) {
+      toast.error("Domain ID and Account ID are required", {
+        duration: 3000,
+      });
+      throw new Error("Missing domain ID or account ID");
+    }
+
     try {
-      // TODO: Implement API call to change password
-      // await changePasswordApi(password, forceChange);
-      console.log("Changing password:", { password, forceChange });
+      const result = await resetPasswordMutation.mutateAsync({
+        domainId,
+        accountId,
+        newPassword: password,
+      });
       toast.success("Password changed successfully", {
         duration: 3000,
       });
       setIsChangePasswordModalOpen(false);
-    } catch (error) {
-      toast.error("Failed to change password", {
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      const errorMessage = error?.message || "Failed to change password";
+      toast.error(errorMessage, {
         duration: 3000,
       });
       throw error;
-    } finally {
-      setIsChangingPassword(false);
     }
   };
 
@@ -332,7 +348,7 @@ export function ProfileInfoSection({
         isOpen={isChangePasswordModalOpen}
         onClose={() => setIsChangePasswordModalOpen(false)}
         onSave={handleChangePassword}
-        isLoading={isChangingPassword}
+        isLoading={resetPasswordMutation.isPending}
       />
     </div>
   );

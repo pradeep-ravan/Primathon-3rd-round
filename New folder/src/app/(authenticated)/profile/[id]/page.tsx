@@ -631,6 +631,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               accountState: profileData.accountState,
             }}
             onInputChange={handleInputChange}
+            domainId={domainId}
+            accountId={accountId}
           />
         );
 

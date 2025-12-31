@@ -60,6 +60,7 @@ export const API_ENDPOINTS = {
     GET_ACCOUNT_DETAILS: (domainId: string, accountId: string) => `/admin/domain/${domainId}/accounts/${accountId}`,
     UPDATE_ACCOUNT: (domainId: string, accountId: string) => `/admin/domain/${domainId}/accounts/${accountId}`,
     DELETE: (domainId: string, accountId: string) => `/admin/domain/${domainId}/accounts/${accountId}`,
+    RESET_PASSWORD: (domainId: string, accountId: string) => `/admin/domain/${domainId}/accounts/${accountId}/reset-password`,
   },
 
   // Group Management Endpoints (for future implementation)
