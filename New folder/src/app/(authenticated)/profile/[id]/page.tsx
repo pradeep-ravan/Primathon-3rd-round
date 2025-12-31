@@ -200,8 +200,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         autoRespondEnabled: accountDetails.email_settings?.responder?.responder_type !== 'DISABLED' && 
           accountDetails.email_settings?.responder?.responder_type !== 0 && 
           accountDetails.email_settings?.responder?.responder_type !== '0',
-        respondStartDate: accountDetails.email_settings?.responder?.respond_between_from || '',
-        respondEndDate: accountDetails.email_settings?.responder?.respond_between_to || '',
+        respondStartDate: accountDetails.email_settings?.responder?.respond_between_from 
+          ? accountDetails.email_settings.responder.respond_between_from.replace(/\//g, '-')
+          : '',
+        respondEndDate: accountDetails.email_settings?.responder?.respond_between_to 
+          ? accountDetails.email_settings.responder.respond_between_to.replace(/\//g, '-')
+          : '',
         respondAfterDaysEnabled: accountDetails.email_settings?.responder?.respond_period ? accountDetails.email_settings.responder.respond_period > 0 : false,
         respondAfterDays: accountDetails.email_settings?.responder?.respond_period?.toString() || '',
         spamReportsMode: accountDetails.email_settings?.spam_reports_mode?.toLowerCase() || 'default',
@@ -569,16 +573,25 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           hasChanged(profileData.autoRespondEnabled, baseline.autoRespondEnabled) ||
           hasChanged(profileData.respondStartDate, baseline.respondStartDate) ||
           hasChanged(profileData.respondEndDate, baseline.respondEndDate) ||
+          hasChanged(profileData.respondAfterDaysEnabled, baseline.respondAfterDaysEnabled) ||
           hasChanged(profileData.respondAfterDays, baseline.respondAfterDays);
         
         if (responderChanged) {
-          emailSettingsChanges.responder = {
-            responder_type: profileData.autoRespondEnabled ? 'ENABLED' : 'DISABLED',
-            respond_period: profileData.respondAfterDays ? parseInt(profileData.respondAfterDays) || 0 : 0,
-            respond_between_from: profileData.respondStartDate || '',
-            respond_between_to: profileData.respondEndDate || '',
+          const responderData: any = {
+            responder_type: profileData.autoRespondEnabled ? 1 : 0,
+            respond_period: profileData.respondAfterDaysEnabled && profileData.respondAfterDays ? parseInt(profileData.respondAfterDays) || 0 : 0,
             respond_only_if_to_me: false,
           };
+          
+          // Only add dates if they are not empty (API requires YYYY/MM/DD format)
+          if (profileData.respondStartDate) {
+            responderData.respond_between_from = profileData.respondStartDate.replace(/-/g, '/');
+          }
+          if (profileData.respondEndDate) {
+            responderData.respond_between_to = profileData.respondEndDate.replace(/-/g, '/');
+          }
+          
+          emailSettingsChanges.responder = responderData;
           hasEmailChanges = true;
         }
         
