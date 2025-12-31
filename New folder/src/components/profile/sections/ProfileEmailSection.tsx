@@ -9,6 +9,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   CustomInlineForm,
   FieldType,
@@ -36,42 +39,33 @@ export function ProfileEmailSection({
   profileData,
   onInputChange,
 }: ProfileEmailSectionProps) {
-  // Forwarder Fields
-  const forwarderFields: FormField[] = [
-    {
-      name: "forwardTo",
-      label: "FORWARD TO",
-      type: FieldType.EMAIL,
-      placeholder: "Email",
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "alternateEmail",
-      label: "ALTERNATE EMAIL",
-      type: FieldType.EMAIL,
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "doNotForwardSpam",
-      label: "DO NOT FORWARD SPAM MESSAGES",
-      type: FieldType.SWITCH,
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "copyIncomingMail",
-      label: "COPY INCOMING MAIL",
-      type: FieldType.EMAIL,
-      placeholder: "Email",
-      className: "bg-muted border-border text-foreground",
-    },
-    {
-      name: "copyOutgoingMail",
-      label: "COPY OUTGOING MAIL",
-      type: FieldType.EMAIL,
-      placeholder: "Email",
-      className: "bg-muted border-border text-foreground",
-    },
-  ];
+  // Handle forward to input change
+  const handleForwardToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onInputChange('forwardTo', e.target.value);
+  };
+
+  // Handle alternate email input change
+  const handleAlternateEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onInputChange('alternateEmail', e.target.value);
+  };
+
+  // Handle copy incoming mail input change
+  const handleCopyIncomingMailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onInputChange('copyIncomingMail', e.target.value);
+  };
+
+  // Handle copy outgoing mail input change
+  const handleCopyOutgoingMailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onInputChange('copyOutgoingMail', e.target.value);
+  };
+
+  // Handle do not forward spam toggle
+  const handleDoNotForwardSpamChange = (checked: boolean) => {
+    onInputChange('doNotForwardSpam', checked);
+  };
+
+  // Check if Forward To field has value to enable/disable the toggle
+  const isForwardToEmpty = !profileData.forwardTo || profileData.forwardTo.trim() === '';
 
   // Responder Fields
   const responderFields: FormField[] = [
@@ -130,11 +124,6 @@ export function ProfileEmailSection({
     },
   ];
 
-  const handleForwarderSubmit = (data: any) => {
-    Object.keys(data).forEach((key) => {
-      onInputChange(key, data[key]);
-    });
-  };
 
   const handleResponderSubmit = (data: any) => {
     Object.keys(data).forEach((key) => {
@@ -157,18 +146,78 @@ export function ProfileEmailSection({
             FORWARDER
           </CardTitle>
           <CardDescription className="text-foreground">
-            Forward and copy messages. Incoming/outgoing copies cannot be
-            modified by the user.
+            Set where messages are to be forwarded or copied, separate several by semicolon. Alternate email is used during password retrieval. Incoming/outgoing copy cannot be modified by user.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <CustomInlineForm
-            config={{
-              fields: forwarderFields,
-              onSubmit: handleForwarderSubmit,
-              defaultValues: profileData,
-            }}
-          />
+        <CardContent className="space-y-6">
+          {/* Forward To and Alternate Email - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-foreground">FORWARD TO</Label>
+                <Input
+                  type="email"
+                  value={profileData.forwardTo}
+                  onChange={handleForwardToChange}
+                  placeholder="Email"
+                  className="bg-muted border-border text-foreground"
+                />
+              </div>
+
+              {/* Do Not Forward Spam Messages - Below Forward To */}
+              <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
+                <Label 
+                  htmlFor="doNotForwardSpam" 
+                  className={`text-sm font-medium ${isForwardToEmpty ? 'text-muted-foreground' : 'text-foreground'}`}
+                >
+                  DO NOT FORWARD SPAM MESSAGES
+                </Label>
+                <Switch
+                  id="doNotForwardSpam"
+                  checked={profileData.doNotForwardSpam}
+                  onCheckedChange={handleDoNotForwardSpamChange}
+                  disabled={isForwardToEmpty}
+                  className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/30 dark:data-[state=unchecked]:bg-muted-foreground/50"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-foreground">ALTERNATE EMAIL</Label>
+              <Input
+                type="email"
+                value={profileData.alternateEmail}
+                onChange={handleAlternateEmailChange}
+                placeholder="Email"
+                className="bg-muted border-border text-foreground"
+              />
+            </div>
+          </div>
+
+          {/* Copy Incoming Mail and Copy Outgoing Mail - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-foreground">COPY INCOMING MAIL</Label>
+              <Input
+                type="email"
+                value={profileData.copyIncomingMail}
+                onChange={handleCopyIncomingMailChange}
+                placeholder="Email"
+                className="bg-muted border-border text-foreground"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-foreground">COPY OUTGOING MAIL</Label>
+              <Input
+                type="email"
+                value={profileData.copyOutgoingMail}
+                onChange={handleCopyOutgoingMailChange}
+                placeholder="Email"
+                className="bg-muted border-border text-foreground"
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
